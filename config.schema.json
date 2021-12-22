@@ -1,0 +1,126 @@
+{
+  "pluginAlias": "HomebridgeAndroidTV",
+  "pluginType": "platform",
+  "singular": true,
+  "headerDisplay": "Homebridge plugin for AndroidTV devices",
+  "footerDisplay": "",
+  "schema": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "title": "Name",
+        "type": "string",
+        "default": "AndroidTV",
+        "required": true,
+        "description": "Plugin name as displayed in the homebridge log"
+      },
+      "username": {
+        "title": "Username",
+        "type": "string"
+      },
+      "password": {
+        "title": "Password",
+        "type": "string"
+      },
+      "admin": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean",
+            "default": true
+          },
+          "port": {
+            "title": "Port Number",
+            "type": "integer",
+            "maximum": 65353,
+            "placeholder": 8181
+          }
+        }
+      },
+      "devices": {
+        "type": "array",
+        "items": {
+          "title": "Device",
+          "type": "object",
+          "properties": {
+            "id": {
+              "title": "Device ID",
+              "type": "string",
+              "placeholder": "ABC123",
+              "pattern": "^[A-Fa-f0-9]{6,12}$",
+              "required": true
+            },
+            "name": {
+              "title": "Name",
+              "type": "string"
+            },
+            "type": {
+              "title": "Accessory type",
+              "type": "string",
+              "typeahead": {
+                "source": [
+                  "colorLightbulb",
+                  "colorTemperatureLightbulb",
+                  "contactSensor",
+                  "door",
+                  "garageDoorOpener",
+                  "motionSensor",
+                  "occupancySensor",
+                  "outlet",
+                  "sensor",
+                  "statelessSwitch",
+                  "switch",
+                  "valve",
+                  "whiteLightbulb",
+                  "window",
+                  "windowCovering"
+                ]
+              }
+            },
+            "colorMode": {
+              "title": "Color mode",
+              "type": "string",
+              "oneOf": [
+                { "title": "RGB only", "enum": ["rgb"] },
+                { "title": "RGBW", "enum": ["rgbw"] }
+              ]
+            },
+            "exclude": {
+              "title": "Exclude device",
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    }
+  },
+  "form": [
+    "name",
+    {
+      "type": "fieldset",
+      "expandable": true,
+      "title": "Authentication",
+      "items": [
+        {
+          "type": "flex",
+          "flex-flow": "row wrap",
+          "items": [ "username", "password" ]
+        }
+      ]
+    },
+    {
+      "type": "fieldset",
+      "expandable": true,
+      "title": "Administration Interface",
+      "description": "",
+      "items": [
+        "admin.enabled",
+        {
+          "key": "admin.port",
+          "condition": "admin.enabled"
+        }
+      ]
+    }
+  ]
+}
