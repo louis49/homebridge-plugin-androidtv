@@ -12,15 +12,36 @@ class DeviceManager extends EventEmitter {
 
         this.delegate = {
             powered : function (host, power){
-                deviceManager.get(host).setPowered(power);
+                let device = deviceManager.get(host);
+                device.setPowered(power);
+                deviceManager.emit('powered', device);
             },
             volume : function (host, volume_current, volume_max, volume_muted){
-                deviceManager.get(host).setVolumeCurrent(volume_current);
-                deviceManager.get(host).setVolumeMax(volume_max);
-                deviceManager.get(host).setVolumeMuted(volume_muted);
+                let device = deviceManager.get(host);
+
+                if(device.volume_current !== volume_current){
+                    device.setVolumeCurrent(volume_current);
+                    deviceManager.emit('volume', device);
+                }
+                else{
+                    device.setVolumeCurrent(volume_current);
+                }
+
+                if(device.volume_muted !== volume_muted){
+                    device.setVolumeMuted(volume_muted);
+                    deviceManager.emit('muted', device);
+                }
+                else{
+                    device.setVolumeMuted(volume_muted);
+                }
+
+
+                device.setVolumeMax(volume_max);
+
             },
             app : function (host, appPackage){
-                deviceManager.get(host).setAppPackageCurrent(appPackage);
+                let device = deviceManager.get(host);
+                device.setAppPackageCurrent(appPackage);
             }
         }
     }
@@ -79,10 +100,13 @@ class DeviceManager extends EventEmitter {
                 let device = deviceManager.get(service.host);
                 device.setOnline(true);
                 if(device.getPaired()){
-                    let certs = certificateGenerator.retrieve(service.host);
+                    deviceManager.start(service.host);
+                    /*let certs = certificateGenerator.retrieve(service.host);
                     let remoteManager = device.getRemoteManager();
                     remoteManager.start(certs);
                     device.setStarted(true);
+
+                     */
                 }
             }
         });
@@ -109,6 +133,7 @@ class DeviceManager extends EventEmitter {
         let device = this.get(host);
         let remoteManager = device.getRemoteManager();
         let result = await remoteManager.start(certs);
+        device.setStarted(true);
         deviceManager.emit('discover', device);
         return result;
     }

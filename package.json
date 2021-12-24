@@ -1,7 +1,7 @@
 {
   "name": "homebridge-androidtv",
   "version": "1.0.0",
-  "description": "",
+  "description": "Homebridge plugin to control your AndroidTV / Freebox Player Pop / Freemox Mini 4k",
   "main": "index.js",
   "scripts": {
     "watch": "npm link && nodemon"
@@ -13,9 +13,12 @@
   "keywords": [
     "homebridge",
     "homebridge-plugin",
-    "androidtv"
+    "androidtv",
+    "freebox",
+    "freebox-player-pop",
+    "freemox-mini-4k"
   ],
-  "author": "",
+  "author": "@louis49",
   "license": "ISC",
   "dependencies": {
     "bonjour": "^3.5.0",
@@ -29,5 +32,9 @@
     "homebridge": "^1.3.8",
     "nodemon": "^2.0.15"
   },
-  "type": "module"
+  "type": "module",
+  "homepage": "https://github.com/louis49/googletv-homebridge",
+  "bugs": {
+    "url": "https://github.com/louis49/googletv-homebridge/issues"
+  }
 }

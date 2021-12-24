@@ -5,7 +5,7 @@ const Devices = {
     data() {
         return {
             devices: [],
-            columns:["host", "name", "online", "paired", "started", "powered", "volume_current", "volume_max", "volume_muted", "app_package_current"],
+            columns:["host", "name", "online", "paired", "started", "powered", "app_package_current"],
             code: ""
         }
     },

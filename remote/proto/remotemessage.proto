@@ -87,7 +87,7 @@ message RemoteImeKeyInject {
 enum RemoteKeyCode {
   UNKNOWN_KEY = 0;
   FREE = 3;
-  PREVIOUS = 4;
+  BACK = 4;
   BUTTON0 = 7;
   BUTTON1 = 8;
   BUTTON2 = 9;
@@ -106,20 +106,25 @@ enum RemoteKeyCode {
   VOLUME_UP = 24;
   VOLUME_DOWN = 25;
   POWER = 26;
+  MENU = 82;
   PLAY = 85;
   BACKWARD = 89;
   FORWARD = 90;
   NEXT = 125;
   REC = 130;
   MUTE = 164;
+  INFO = 165;
   PROGRAM_UP = 166;
   PROGRAM_DOWN = 167;
   ZOOM_IN = 168;
   ZOOM_OUT = 169;
+  SETTINGS = 176;
   RED = 183;
   YELLOW = 185;
   GREEN = 184;
   BLUE = 186;
+  BRIGHTNESS_DOWN = 220;
+  BRIGHTNESS_UP = 221;
 }
 
 enum RemoteDirection {
