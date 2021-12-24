@@ -19,6 +19,8 @@ class DeviceManager extends EventEmitter {
             volume : function (host, volume_current, volume_max, volume_muted){
                 let device = deviceManager.get(host);
 
+                device.setVolumeMax(volume_max);
+
                 if(device.volume_current !== volume_current){
                     device.setVolumeCurrent(volume_current);
                     deviceManager.emit('volume', device);
@@ -34,10 +36,6 @@ class DeviceManager extends EventEmitter {
                 else{
                     device.setVolumeMuted(volume_muted);
                 }
-
-
-                device.setVolumeMax(volume_max);
-
             },
             app : function (host, appPackage){
                 let device = deviceManager.get(host);
