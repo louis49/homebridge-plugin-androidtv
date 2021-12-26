@@ -2,124 +2,90 @@
   "pluginAlias": "HomebridgeAndroidTV",
   "pluginType": "platform",
   "singular": true,
-  "headerDisplay": "Homebridge plugin for AndroidTV devices",
+  "headerDisplay": "",
   "footerDisplay": "",
   "schema": {
-    "type": "object",
-    "properties": {
-      "name": {
-        "title": "Name",
-        "type": "string",
-        "default": "AndroidTV",
-        "required": true,
-        "description": "Plugin name as displayed in the homebridge log"
-      },
-      "username": {
-        "title": "Username",
-        "type": "string"
-      },
-      "password": {
-        "title": "Password",
-        "type": "string"
-      },
-      "admin": {
+    "port": {
+      "title": "port",
+      "type": "integer",
+      "default": "8181",
+      "required": true
+    },
+    "channels": {
+      "type": "array",
+      "items": {
+        "title": "Channels",
         "type": "object",
         "properties": {
-          "enabled": {
-            "title": "Enabled",
-            "type": "boolean",
-            "default": true
+          "name": {
+            "title": "Name",
+            "type": "string",
+            "default": "France Info",
+            "placeholder": "Channel name",
+            "required": true
           },
-          "port": {
-            "title": "Port Number",
+          "number": {
+            "title": "Number",
             "type": "integer",
-            "maximum": 65353,
-            "placeholder": 8181
+            "default" : 27,
+            "placeholder": "Channel number",
+            "required": true
           }
         }
-      },
-      "devices": {
-        "type": "array",
-        "items": {
-          "title": "Device",
-          "type": "object",
-          "properties": {
-            "id": {
-              "title": "Device ID",
-              "type": "string",
-              "placeholder": "ABC123",
-              "pattern": "^[A-Fa-f0-9]{6,12}$",
-              "required": true
-            },
-            "name": {
-              "title": "Name",
-              "type": "string"
-            },
-            "type": {
-              "title": "Accessory type",
-              "type": "string",
-              "typeahead": {
-                "source": [
-                  "colorLightbulb",
-                  "colorTemperatureLightbulb",
-                  "contactSensor",
-                  "door",
-                  "garageDoorOpener",
-                  "motionSensor",
-                  "occupancySensor",
-                  "outlet",
-                  "sensor",
-                  "statelessSwitch",
-                  "switch",
-                  "valve",
-                  "whiteLightbulb",
-                  "window",
-                  "windowCovering"
-                ]
-              }
-            },
-            "colorMode": {
-              "title": "Color mode",
-              "type": "string",
-              "oneOf": [
-                { "title": "RGB only", "enum": ["rgb"] },
-                { "title": "RGBW", "enum": ["rgbw"] }
-              ]
-            },
-            "exclude": {
-              "title": "Exclude device",
-              "type": "boolean"
-            }
+      }
+    },
+    "applications": {
+      "type": "array",
+      "items": {
+        "title": "Applications",
+        "type": "object",
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string",
+            "default": "Netflix",
+            "placeholder": "Application name",
+            "required": true
+          },
+          "link": {
+            "title": "Link",
+            "type": "string",
+            "default" : "https://www.netflix.com/title.*",
+            "placeholder": "App link",
+            "required": true
           }
         }
       }
     }
   },
-  "form": [
-    "name",
+  "layout": [
     {
-      "type": "fieldset",
-      "expandable": true,
-      "title": "Authentication",
+      "key" : "port",
+      "type" : "fieldset",
+      "title" : "Admin port",
+      "items" : {
+        "title" : "Port",
+        "key": "port"
+      }
+    },
+    {
+      "key": "channels",
+      "type": "array",
+      "orderable": true,
+      "buttonText": "Add Channel",
       "items": [
-        {
-          "type": "flex",
-          "flex-flow": "row wrap",
-          "items": [ "username", "password" ]
-        }
+        "channels[].name",
+        "channels[].number"
       ]
     },
     {
-      "type": "fieldset",
-      "expandable": true,
-      "title": "Administration Interface",
-      "description": "",
+      "key": "applications",
+      "type": "array",
+      "orderable": true,
+      "buttonText": "Add Application",
       "items": [
-        "admin.enabled",
-        {
-          "key": "admin.port",
-          "condition": "admin.enabled"
-        }
+        "applications[].name",
+        "applications[].link"
       ]
     }
   ]

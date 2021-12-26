@@ -27,6 +27,18 @@ class AndroidTV {
         this.keys[this.api.hap.Characteristic.RemoteKey.PLAY_PAUSE] = remoteMessageManager.RemoteKeyCode.PLAY;
         this.keys[this.api.hap.Characteristic.RemoteKey.INFORMATION] = remoteMessageManager.RemoteKeyCode.SETTINGS;// TO_CHECK
 
+        this.channelskeys = {};
+        this.channelskeys[0] = remoteMessageManager.RemoteKeyCode.BUTTON0;
+        this.channelskeys[1] = remoteMessageManager.RemoteKeyCode.BUTTON1;
+        this.channelskeys[2] = remoteMessageManager.RemoteKeyCode.BUTTON2;
+        this.channelskeys[3] = remoteMessageManager.RemoteKeyCode.BUTTON3;
+        this.channelskeys[4] = remoteMessageManager.RemoteKeyCode.BUTTON4;
+        this.channelskeys[5] = remoteMessageManager.RemoteKeyCode.BUTTON5;
+        this.channelskeys[6] = remoteMessageManager.RemoteKeyCode.BUTTON6;
+        this.channelskeys[7] = remoteMessageManager.RemoteKeyCode.BUTTON7;
+        this.channelskeys[8] = remoteMessageManager.RemoteKeyCode.BUTTON8;
+        this.channelskeys[9] = remoteMessageManager.RemoteKeyCode.BUTTON9;
+
         deviceManager.load();
         deviceManager.on('discover', this.discover.bind(this));
 
@@ -74,21 +86,6 @@ class AndroidTV {
         tvService.setCharacteristic(this.api.hap.Characteristic.SleepDiscoveryMode, this.api.hap.Characteristic.SleepDiscoveryMode.ALWAYS_DISCOVERABLE);
         tvService.setCharacteristic(this.api.hap.Characteristic.PowerModeSelection, this.api.hap.Characteristic.PowerModeSelection.SHOW);
 
-
-        const hdmi1InputService = this.tvAccessory.addService(this.api.hap.Service.InputSource, 'hdmi1', 'HDMI 1');
-        hdmi1InputService
-            .setCharacteristic(this.api.hap.Characteristic.Identifier, 1)
-            .setCharacteristic(this.api.hap.Characteristic.ConfiguredName, 'HDMI 1')
-            .setCharacteristic(this.api.hap.Characteristic.IsConfigured, this.api.hap.Characteristic.IsConfigured.CONFIGURED)
-            .setCharacteristic(this.api.hap.Characteristic.InputSourceType, this.api.hap.Characteristic.InputSourceType.TUNER)
-            .setCharacteristic(this.api.hap.Characteristic.TargetVisibilityState, this.api.hap.Characteristic.TargetVisibilityState.SHOWN);
-        hdmi1InputService.getCharacteristic(this.api.hap.Characteristic.InputDeviceType).on('get', function (callback){
-            this.log.info('get InputDeviceType');
-            callback(this.api.hap.Characteristic.InputDeviceType.TV)
-        }.bind(this));
-
-        tvService.addLinkedService(hdmi1InputService); // link to tv service
-
         tvService.getCharacteristic(this.api.hap.Characteristic.Active).onSet((newValue, old) => {
             this.log.info('set Active => setNewValue: ' + newValue);
 
@@ -108,15 +105,6 @@ class AndroidTV {
             tvService.updateCharacteristic(this.api.hap.Characteristic.Active,
                 device.getPowered()?this.api.hap.Characteristic.Active.ACTIVE:this.api.hap.Characteristic.Active.INACTIVE);
         }.bind(this));
-
-        tvService.setCharacteristic(this.api.hap.Characteristic.ActiveIdentifier, 1);
-
-        tvService.getCharacteristic(this.api.hap.Characteristic.ActiveIdentifier)
-            .onSet((newValue) => {
-                // Ca va servir à changer de chaine...
-                this.log.info('set Active Identifier => setNewValue: ' + newValue);
-            });
-
 
         tvService.getCharacteristic(this.api.hap.Characteristic.RemoteKey)
             .onSet((newValue) => {
@@ -173,10 +161,71 @@ class AndroidTV {
                 callback(null, volume);
             }.bind(this));
 
+        let identifier = 0;
+        for (let channel of this.config.channels){
+            const uuid = this.api.hap.uuid.generate('homebridge:androidtv-channel-' + channel.name);
+            const service = this.tvAccessory.addService(this.api.hap.Service.InputSource, uuid, channel.name);
+
+            service.setCharacteristic(this.api.hap.Characteristic.Identifier, identifier)
+            service.setCharacteristic(this.api.hap.Characteristic.ConfiguredName, channel.name)
+            service.setCharacteristic(this.api.hap.Characteristic.IsConfigured, this.api.hap.Characteristic.IsConfigured.CONFIGURED)
+            service.setCharacteristic(this.api.hap.Characteristic.InputSourceType, this.api.hap.Characteristic.InputSourceType.TUNER);
+            tvService.addLinkedService(service);
+            identifier++;
+        }
+
+        for (let application of this.config.applications){
+            const uuid = this.api.hap.uuid.generate('homebridge:androidtv-application-' + application.name);
+            const service = this.tvAccessory.addService(this.api.hap.Service.InputSource, uuid, application.name);
+            service.setCharacteristic(this.api.hap.Characteristic.Identifier, identifier)
+            service.setCharacteristic(this.api.hap.Characteristic.ConfiguredName, application.name)
+            service.setCharacteristic(this.api.hap.Characteristic.IsConfigured, this.api.hap.Characteristic.IsConfigured.CONFIGURED)
+            service.setCharacteristic(this.api.hap.Characteristic.InputSourceType, this.api.hap.Characteristic.InputSourceType.APPLICATION);
+            tvService.addLinkedService(service);
+            identifier++;
+        }
+
+        tvService.setCharacteristic(this.api.hap.Characteristic.ActiveIdentifier, -1);
+
+        tvService.getCharacteristic(this.api.hap.Characteristic.ActiveIdentifier)
+            .onSet((newValue) => {
+                // Ca va servir à changer de chaine...
+                if(newValue < this.config.channels.length){
+                    let channel = this.config.channels[newValue];
+                    let array = this.splitChannelNumber(channel.number);
+
+                    device.remoteManager.sendKey(remoteMessageManager.RemoteKeyCode.BACK);
+                    device.remoteManager.sendKey(remoteMessageManager.RemoteKeyCode.OK);
+                    device.remoteManager.sendKey(remoteMessageManager.RemoteKeyCode.OK);
+                    for (let button of array){
+                        this.log.info('Appui sur ' + button + ' ' + this.channelskeys[button]);
+                        device.remoteManager.sendKey(this.channelskeys[button]);
+                    }
+                }
+                else{
+                    // Il s'agit d'une application
+                    device.remoteManager.sendKey(remoteMessageManager.RemoteKeyCode.BACK);
+                    device.remoteManager.sendKey(remoteMessageManager.RemoteKeyCode.OK);
+                    let index = newValue - this.config.channels.length;
+                    let application = this.config.applications[index];
+                    this.log.info('Envoi de " + application.link');
+                    device.remoteManager.sendAppLink(application.link);
+                }
+
+
+                this.log.info('set Active Identifier => setNewValue: ' + newValue);
+            });
 
         this.api.publishExternalAccessories(PLUGIN_NAME, [this.tvAccessory]);
     }
 
+    splitChannelNumber(number){
+        let string_number = String(number);
+
+        let array = string_number.split('');
+
+        return array;
+    }
 }
 
 

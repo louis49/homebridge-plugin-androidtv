@@ -122,6 +122,10 @@ class RemoteManager {
             remoteMessageManager.RemoteDirection.SHORT,
             key));
     }
+
+    sendAppLink(app_link){
+        this.client.write(remoteMessageManager.createRemoteRemoteAppLinkLaunchRequest(app_link));
+    }
 }
 
 //let remote = new RemoteManager();

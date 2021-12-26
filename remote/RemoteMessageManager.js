@@ -103,6 +103,14 @@ class RemoteMessageManager {
         });
     }
 
+    createRemoteRemoteAppLinkLaunchRequest(app_link) {
+        return this.create({
+            remoteAppLinkLaunchRequest : {
+                appLink : app_link
+            }
+        });
+    }
+
     parse(buffer){
         return this.RemoteMessage.decodeDelimited(buffer);
     }
