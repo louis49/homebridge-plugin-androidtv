@@ -18,7 +18,16 @@
             <tbody>
                 <tr v-for="device in devices">
                     <td v-for="key in columns">
+                        <div v-if="key !== 'type'">
                         {{device[key]}}
+                        </div>
+                        <div v-else-if="key === 'type'">
+                            <select v-model="device.type" v-on:change="set_type(device)">
+                                <option v-for="type in types" v-bind:value="type.value">
+                                    {{ type.text }}
+                                </option>
+                            </select>
+                        </div>
                     </td>
                     <td>
                         <button class="btn btn-primary btn-sm" v-on:click="pair(device)" v-if="!device.paired && !device.pairing">Pair</button>
@@ -29,7 +38,7 @@
                                 <input class="form-control form-control-xs" id="floatingInput" v-model="code" v-on:keyup.enter="send_code(device)" placeholder="Code"/>
                             </div>
                             <div class="col-sm-4">
-                                <button type="button" class="btn btn-primary btn-sm">Send</button>
+                                <button type="button" class="btn btn-primary btn-sm" v-on:click="send_code(device)">Send</button>
                             </div>
                         </div>
                     </td>

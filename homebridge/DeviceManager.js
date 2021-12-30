@@ -3,147 +3,179 @@ import fs from "fs";
 import {Device} from "./Device.js";
 import EventEmitter from "events";
 
-import {certificateGenerator} from "../remote/CertificateGenerator.js";
-
 class DeviceManager extends EventEmitter {
-    constructor() {
+    constructor(log, config, api) {
         super();
-        this.device_list = {};
 
-        this.delegate = {
-            powered : function (host, power){
-                let device = deviceManager.get(host);
-                device.setPowered(power);
-                deviceManager.emit('powered', device);
-            },
-            volume : function (host, volume_current, volume_max, volume_muted){
-                let device = deviceManager.get(host);
+        this.log = log;
+        this.config = config;
+        this.api = api;
 
-                device.setVolumeMax(volume_max);
-
-                if(device.volume_current !== volume_current){
-                    device.setVolumeCurrent(volume_current);
-                    deviceManager.emit('volume', device);
-                }
-                else{
-                    device.setVolumeCurrent(volume_current);
-                }
-
-                if(device.volume_muted !== volume_muted){
-                    device.setVolumeMuted(volume_muted);
-                    deviceManager.emit('muted', device);
-                }
-                else{
-                    device.setVolumeMuted(volume_muted);
-                }
-            },
-            app : function (host, appPackage){
-                let device = deviceManager.get(host);
-                device.setAppPackageCurrent(appPackage);
-            }
+        this.devices = {};
+        this.certificate = {
+            cert : null,
+            key : null
         }
     }
 
     load() {
-        let buffer = fs.readFileSync("devices.json");
-        let data = JSON.parse(buffer.toString());
-        Object.keys(data).map((key, index) => {
-            let device = new Device(data[key].host, data[key].name);
-            device.setPaired(data[key].paired);
-            device.getRemoteManager().delegate = this.delegate;
-            this.add(data[key].host, device);
-        });
+
+        if(fs.existsSync('config.json')){
+            let data = fs.readFileSync('config.json', {encoding:'utf-8'})
+            if(data){
+                let obj = JSON.parse(data);
+                this.certificate = obj.certificate;
+
+                Object.keys(obj.devices).map((key, index) => {
+                    let device = obj.devices[key];
+                    this.devices[key] = new Device(device.host, device.port, device.name, device.cert, device.type);
+                    this.devices[key].paired = device.paired;
+                });
+            }
+        }
+
+
+        console.log("End Load");
     }
 
     save() {
-        let devices_json = {};
-        Object.keys(this.device_list).map((key, index) => {
-            devices_json[key] = this.device_list[key].toJSONSaver();
+        let devices = {}
+
+        Object.keys(this.devices).map((key, index) => {
+            let device = this.devices[key];
+            devices[key] = {
+                host : device.host,
+                port : device.port,
+                name : device.name,
+                paired : device.paired,
+                type : device.type,
+                cert: device.android_remote.cert
+            }
         });
-        fs.writeFileSync("devices.json", Buffer.from(JSON.stringify(devices_json)));
+
+        let obj = {
+            devices : devices
+        }
+        let data = JSON.stringify(obj, null, 1);
+        fs.writeFileSync('config.json', data, {encoding:'utf-8'});
     }
 
     list() {
-        return this.device_list;
+        let devices = {};
+        Object.keys(this.devices).map((key, index) => {
+            let device = this.devices[key];
+            devices[key] = device.toJSON();
+        });
+
+        return devices;
     }
 
     get(host) {
-        return this.device_list[host];
+        return this.devices[host];
     }
 
     exist(host){
         return !!this.get(host);
     }
 
-    add(host, device){
-        this.device_list[host] = device;
-    }
-
-    remove(host){
-        delete this.device_list[host];
-    }
-
     listen(){
         bonjour().find({
             type : ["androidtvremote2"]
-        }, function (service){
-            console.log(service.name, service.addresses[0], service.port, service.host);
-            if(!deviceManager.exist(service.host)){
-                let device = new Device(service.host, service.name);
-                device.setOnline(true);
-                deviceManager.add(service.host, device);
-                device.getRemoteManager().delegate = deviceManager.delegate;
+        }, async function (service){
+            const name = service.name;
+            const address = service.addresses[0];
+            const port = service.port;
+
+            this.log.debug('Finding device : ', name, address, port)
+
+            let device;
+
+            if(this.exist(address)){
+                device = this.get(address);
             }
             else{
-                let device = deviceManager.get(service.host);
-                device.setOnline(true);
-                if(device.getPaired()){
-                    deviceManager.start(service.host);
-                    /*let certs = certificateGenerator.retrieve(service.host);
-                    let remoteManager = device.getRemoteManager();
-                    remoteManager.start(certs);
-                    device.setStarted(true);
+                device = new Device(address, port, name, null, 31);
+                this.devices[address] = device;
+            }
+            device.online = true;
 
-                     */
+            device.android_remote.on('secret', function (){
+                console.info('Pairing', this.devices[address].name);
+                this.devices[address].pairing = true;
+            }.bind(this));
+
+            device.android_remote.on('powered',function (powered){
+                device.powered = powered;
+                this.emit('powered', device);
+            }.bind(this));
+
+            device.android_remote.on('volume',function (volume){
+                device.volume_max = volume.maximum;
+                if(device.volume_current !== volume.level){
+                    device.volume_current = volume.level;
+                    this.emit('volume', device);
+                }
+                else{
+                    device.volume_current = volume.level;
+                }
+
+                if(device.volume_muted !== volume.muted){
+                    device.volume_muted = volume.muted;
+                    this.emit('muted', device);
+                }
+                else{
+                    device.volume_muted = volume.muted;
+                }
+            }.bind(this));
+
+            device.android_remote.on('ready',function () {
+                this.emit('discover', device);
+            }.bind(this));
+
+            if(device.paired){
+                let result = await device.android_remote.start();
+                if(result){
+                    device.started = true;
+                    this.save();
                 }
             }
-        });
+        }.bind(this));
     }
 
     async pair(host){
-        certificateGenerator.generate(host);
-        let certs = certificateGenerator.retrieve(host);
         let device = this.get(host);
-        let pairingManager = device.getPairingManager();
-        let result = await pairingManager.start(certs);
-        return result;
+        let result = await device.android_remote.start();
+
+        if(result){
+            device.started = true;
+            this.save();
+        }
+
+        return device;
     }
 
     async sendCode(host, code){
         let device = this.get(host);
-        let pairingManager = device.getPairingManager();
-        let result = await pairingManager.sendCode(code);
-        return result;
-    }
+        let result = device.android_remote.sendCode(code);
 
-    async start(host){
-        let certs = certificateGenerator.retrieve(host);
-        let device = this.get(host);
-        let remoteManager = device.getRemoteManager();
-        let result = await remoteManager.start(certs);
-        device.setStarted(true);
-        deviceManager.emit('discover', device);
-        return result;
+        if(result){
+            device.pairing = false;
+            device.paired = true;
+            if(!this.certificate.cert || !this.certificate.key){
+                this.certificate = device.android_remote.cert;
+            }
+            this.save();
+        }
+
+        return device.toJSON();
     }
 
     sendPower(host){
         let device = this.get(host);
-        let remoteManager = device.getRemoteManager();
-        remoteManager.sendPower();
+        device.android_remote.sendPower();
     }
 
 
 }
 
-let deviceManager = new DeviceManager();
-export { deviceManager };
+export { DeviceManager };

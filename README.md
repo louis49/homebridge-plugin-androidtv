@@ -18,7 +18,10 @@ Note that this is an unofficial plugin.
 ## Configuration
 You can configure channels and applications (don't hesitate to create an HomeKit Scene to launch them by voice)
 
+For channels, we always consider TV App as the first on the list channel shown after a 'Home' tap
+
 Example for French TV :
+
 ```json
 {
    "channels": [

@@ -1,48 +1,49 @@
 import { AdminServer } from "./admin/index.js"
-import { deviceManager } from "./DeviceManager.js"
+import { DeviceManager } from "./DeviceManager.js"
 import { PLUGIN_NAME, PLATFORM_NAME } from './settings.js'
-import {remoteMessageManager} from "../remote/RemoteMessageManager.js";
+import {RemoteKeyCode, RemoteDirection} from "androidtv-remote"
 
 class AndroidTV {
 
     constructor(log, config, api) {
-
         this.log = log;
         this.config = config;
         this.api = api;
         this.keys = {};
 
-
-        this.keys[this.api.hap.Characteristic.RemoteKey.REWIND] = remoteMessageManager.RemoteKeyCode.BACKWARD;
-        this.keys[this.api.hap.Characteristic.RemoteKey.FAST_FORWARD] =  remoteMessageManager.RemoteKeyCode.FORWARD;
-        this.keys[this.api.hap.Characteristic.RemoteKey.NEXT_TRACK ] =  remoteMessageManager.RemoteKeyCode.NEXT;
-        this.keys[this.api.hap.Characteristic.RemoteKey.PREVIOUS_TRACK ] =  remoteMessageManager.RemoteKeyCode.PREVIOUS;
-        this.keys[this.api.hap.Characteristic.RemoteKey.ARROW_UP] =  remoteMessageManager.RemoteKeyCode.UP;
-        this.keys[this.api.hap.Characteristic.RemoteKey.ARROW_DOWN] =  remoteMessageManager.RemoteKeyCode.DOWN;
-        this.keys[this.api.hap.Characteristic.RemoteKey.ARROW_LEFT] =  remoteMessageManager.RemoteKeyCode.LEFT;
-        this.keys[this.api.hap.Characteristic.RemoteKey.ARROW_RIGHT] =  remoteMessageManager.RemoteKeyCode.RIGHT;
-        this.keys[this.api.hap.Characteristic.RemoteKey.SELECT] =  remoteMessageManager.RemoteKeyCode.OK;
-        this.keys[this.api.hap.Characteristic.RemoteKey.BACK] =  remoteMessageManager.RemoteKeyCode.BACK;// TO_CHECK
-        this.keys[this.api.hap.Characteristic.RemoteKey.EXIT] =  remoteMessageManager.RemoteKeyCode.OK;// TO_CHECK
-        this.keys[this.api.hap.Characteristic.RemoteKey.PLAY_PAUSE] = remoteMessageManager.RemoteKeyCode.PLAY;
-        this.keys[this.api.hap.Characteristic.RemoteKey.INFORMATION] = remoteMessageManager.RemoteKeyCode.SETTINGS;// TO_CHECK
+        this.keys[this.api.hap.Characteristic.RemoteKey.REWIND] = RemoteKeyCode.KEYCODE_MEDIA_REWIND;
+        this.keys[this.api.hap.Characteristic.RemoteKey.FAST_FORWARD] =  RemoteKeyCode.KEYCODE_MEDIA_FAST_FORWARD;
+        this.keys[this.api.hap.Characteristic.RemoteKey.NEXT_TRACK ] =  RemoteKeyCode.KEYCODE_MEDIA_NEXT;
+        this.keys[this.api.hap.Characteristic.RemoteKey.PREVIOUS_TRACK ] =  RemoteKeyCode.KEYCODE_MEDIA_PREVIOUS;
+        this.keys[this.api.hap.Characteristic.RemoteKey.ARROW_UP] =  RemoteKeyCode.KEYCODE_DPAD_UP;
+        this.keys[this.api.hap.Characteristic.RemoteKey.ARROW_DOWN] =  RemoteKeyCode.KEYCODE_DPAD_DOWN;
+        this.keys[this.api.hap.Characteristic.RemoteKey.ARROW_LEFT] =  RemoteKeyCode.KEYCODE_DPAD_LEFT;
+        this.keys[this.api.hap.Characteristic.RemoteKey.ARROW_RIGHT] =  RemoteKeyCode.KEYCODE_DPAD_RIGHT;
+        this.keys[this.api.hap.Characteristic.RemoteKey.SELECT] =  RemoteKeyCode.KEYCODE_DPAD_CENTER;
+        this.keys[this.api.hap.Characteristic.RemoteKey.BACK] =  RemoteKeyCode.KEYCODE_BACK;
+        this.keys[this.api.hap.Characteristic.RemoteKey.EXIT] =  RemoteKeyCode.KEYCODE_HOME;
+        this.keys[this.api.hap.Characteristic.RemoteKey.PLAY_PAUSE] = RemoteKeyCode.KEYCODE_MEDIA_PLAY;
+        this.keys[this.api.hap.Characteristic.RemoteKey.INFORMATION] = RemoteKeyCode.KEYCODE_INFO;
 
         this.channelskeys = {};
-        this.channelskeys[0] = remoteMessageManager.RemoteKeyCode.BUTTON0;
-        this.channelskeys[1] = remoteMessageManager.RemoteKeyCode.BUTTON1;
-        this.channelskeys[2] = remoteMessageManager.RemoteKeyCode.BUTTON2;
-        this.channelskeys[3] = remoteMessageManager.RemoteKeyCode.BUTTON3;
-        this.channelskeys[4] = remoteMessageManager.RemoteKeyCode.BUTTON4;
-        this.channelskeys[5] = remoteMessageManager.RemoteKeyCode.BUTTON5;
-        this.channelskeys[6] = remoteMessageManager.RemoteKeyCode.BUTTON6;
-        this.channelskeys[7] = remoteMessageManager.RemoteKeyCode.BUTTON7;
-        this.channelskeys[8] = remoteMessageManager.RemoteKeyCode.BUTTON8;
-        this.channelskeys[9] = remoteMessageManager.RemoteKeyCode.BUTTON9;
+        this.channelskeys[0] = RemoteKeyCode.KEYCODE_0;
+        this.channelskeys[1] = RemoteKeyCode.KEYCODE_1;
+        this.channelskeys[2] = RemoteKeyCode.KEYCODE_2;
+        this.channelskeys[3] = RemoteKeyCode.KEYCODE_3;
+        this.channelskeys[4] = RemoteKeyCode.KEYCODE_4;
+        this.channelskeys[5] = RemoteKeyCode.KEYCODE_5;
+        this.channelskeys[6] = RemoteKeyCode.KEYCODE_6;
+        this.channelskeys[7] = RemoteKeyCode.KEYCODE_7;
+        this.channelskeys[8] = RemoteKeyCode.KEYCODE_8;
+        this.channelskeys[9] = RemoteKeyCode.KEYCODE_9;
 
-        deviceManager.load();
-        deviceManager.on('discover', this.discover.bind(this));
+        this.deviceManager = new DeviceManager(log, config, api);
 
-        this.adminServer = new AdminServer()
+        this.deviceManager.load();
+
+        this.deviceManager.on('discover', this.discover.bind(this));
+
+        this.adminServer = new AdminServer(this.config.port?this.config.port:8181, this.deviceManager)
         this.adminServer.listen()
             .then(port => {
                 this.log.info(`Admin server is running on port ${port}`);
@@ -54,7 +55,7 @@ class AndroidTV {
         api.on("didFinishLaunching" , () => {
             this.log.info("didFinishLaunching");
 
-            deviceManager.listen();
+            this.deviceManager.listen();
 
 
             this.log.info("end didFinishLaunching");
@@ -69,7 +70,7 @@ class AndroidTV {
         const tvName = device.name;
         const uuid = this.api.hap.uuid.generate('homebridge:androidtv-' + tvName);
         this.tvAccessory = new this.api.platformAccessory(tvName, uuid);
-        this.tvAccessory.category = this.api.hap.Categories.TV_SET_TOP_BOX;
+        this.tvAccessory.category = device.type;//this.api.hap.Categories.TV_SET_TOP_BOX;
 
         this.infoService = this.tvAccessory.getService(this.api.hap.Service.AccessoryInformation);
         this.infoService
@@ -89,30 +90,29 @@ class AndroidTV {
         tvService.getCharacteristic(this.api.hap.Characteristic.Active).onSet((newValue, old) => {
             this.log.info('set Active => setNewValue: ' + newValue);
 
-            if(device.getPowered() !==  (newValue === this.api.hap.Characteristic.Active.ACTIVE)){
-                device.remoteManager.sendPower();
+            if(device.powered !==  (newValue === this.api.hap.Characteristic.Active.ACTIVE)){
+                device.android_remote.sendPower();
             }
             tvService.updateCharacteristic(this.api.hap.Characteristic.Active, newValue);
         });
 
         tvService.getCharacteristic(this.api.hap.Characteristic.Active).on('get', function (callback) {
-            this.log.info('get Active', device.getStarted());
-            callback(null, device.getStarted()?this.api.hap.Characteristic.Active.ACTIVE:this.api.hap.Characteristic.Active.INACTIVE);//tvService.updateCharacteristic(this.api.hap.Characteristic.Active, 1);
+            this.log.info('get Active', device.powered);
+            callback(null, device.started?this.api.hap.Characteristic.Active.ACTIVE:this.api.hap.Characteristic.Active.INACTIVE);//tvService.updateCharacteristic(this.api.hap.Characteristic.Active, 1);
         }.bind(this));
 
-        deviceManager.on('powered', function (device){
-            this.log.info('powered', device.getStarted());
+        this.deviceManager.on('powered', function (device){
+            this.log.info('powered', device.powered);
             tvService.updateCharacteristic(this.api.hap.Characteristic.Active,
-                device.getPowered()?this.api.hap.Characteristic.Active.ACTIVE:this.api.hap.Characteristic.Active.INACTIVE);
+                device.powered?this.api.hap.Characteristic.Active.ACTIVE:this.api.hap.Characteristic.Active.INACTIVE);
         }.bind(this));
 
         tvService.getCharacteristic(this.api.hap.Characteristic.RemoteKey)
             .onSet((newValue) => {
                 this.log.info('Set RemoteKey ' + newValue);
-                device.remoteManager.sendKey(this.keys[newValue]);
+                device.android_remote.sendKey(this.keys[newValue], RemoteDirection.SHORT);
             });
 
-        // On gère le volume
         const speakerService = this.tvAccessory.addService(this.api.hap.Service.TelevisionSpeaker);
         speakerService
             .setCharacteristic(this.api.hap.Characteristic.Active, this.api.hap.Characteristic.Active.ACTIVE)
@@ -122,43 +122,50 @@ class AndroidTV {
             .onSet((volumeSelector) => {
                 this.log.info('set VolumeSelector => setNewValue: ' + volumeSelector);
                 if(volumeSelector === this.api.hap.Characteristic.VolumeSelector.INCREMENT){
-                    device.remoteManager.sendKey(remoteMessageManager.RemoteKeyCode.VOLUME_UP);
+                    device.android_remote.sendKey(RemoteKeyCode.KEYCODE_VOLUME_UP, RemoteDirection.SHORT);
                 }
                 else if(volumeSelector === this.api.hap.Characteristic.VolumeSelector.DECREMENT){
-                    device.remoteManager.sendKey(remoteMessageManager.RemoteKeyCode.VOLUME_DOWN);
+                    device.android_remote.sendKey(RemoteKeyCode.KEYCODE_VOLUME_DOWN, RemoteDirection.SHORT);
                 }
             });
 
         speakerService.getCharacteristic(this.api.hap.Characteristic.Volume)
             .on('get', function(callback) {
-                let volume = Math.round(device.getVolumeCurrent()*100/device.getVolumeMax());
+                let volume = 0 ;
+                if(device.volume_max > 0){
+                    volume = Math.round(device.volume_current*100/device.volume_max);
+                }
                 this.log.info('get VolumeSelector ' + volume);
                 callback(null, volume);
             }.bind(this));
 
-        deviceManager.on('volume', function (device){
-            let volume = Math.round(device.getVolumeCurrent()*100/device.getVolumeMax());
-            this.log.info('volume', volume);
-            tvService.updateCharacteristic(this.api.hap.Characteristic.Volume, volume);
-        }.bind(this));
 
-        speakerService.getCharacteristic(this.api.hap.Characteristic.Volume)
-            .onSet(function(muted) {
-                device.remoteManager.sendKey(remoteMessageManager.RemoteKeyCode.MUTE);
-                speakerService.updateCharacteristic(this.api.hap.Characteristic.Mute, muted);
-            });
-
-        deviceManager.on('muted', function (device){
-            this.log.info('muted', device.getVolumeMuted());
-            tvService.updateCharacteristic(this.api.hap.Characteristic.Mute, device.getVolumeMuted());
+        this.deviceManager.on('volume', function (device){
+            let volume = 0;
+            if(device.volume_max > 0){
+                volume = Math.round(device.volume_current*100/device.volume_max);
+            }
+            this.log.info('Device set Volume', volume);
+            speakerService.updateCharacteristic(this.api.hap.Characteristic.Volume, volume);
         }.bind(this));
 
 
         speakerService.getCharacteristic(this.api.hap.Characteristic.Mute)
+            .onSet(function(muted) {
+                device.android_remote.sendKey(RemoteKeyCode.KEYCODE_VOLUME_MUTE,RemoteDirection.SHORT);
+                speakerService.updateCharacteristic(this.api.hap.Characteristic.Mute, muted);
+            });
+
+        this.deviceManager.on('muted', function (device){
+            this.log.info('muted', device.volume_muted);
+            speakerService.updateCharacteristic(this.api.hap.Characteristic.Mute, device.volume_muted);
+        }.bind(this));
+
+        speakerService.getCharacteristic(this.api.hap.Characteristic.Mute)
             .on("get", function (callback){
-                let volume = device.getVolumeMuted();
+                let muted = device.volume_muted;
                 this.log.info('get VolumeMutedSelector');
-                callback(null, volume);
+                callback(null, muted);
             }.bind(this));
 
         let identifier = 0;
@@ -185,31 +192,31 @@ class AndroidTV {
             identifier++;
         }
 
-        tvService.setCharacteristic(this.api.hap.Characteristic.ActiveIdentifier, -1);
+        tvService.setCharacteristic(this.api.hap.Characteristic.ActiveIdentifier, 0);
 
         tvService.getCharacteristic(this.api.hap.Characteristic.ActiveIdentifier)
-            .onSet((newValue) => {
-                // Ca va servir à changer de chaine...
-                if(newValue < this.config.channels.length){
+            .onSet(async (newValue) => {
+                if (newValue < this.config.channels.length) {
                     let channel = this.config.channels[newValue];
                     let array = this.splitChannelNumber(channel.number);
 
-                    device.remoteManager.sendKey(remoteMessageManager.RemoteKeyCode.BACK);
-                    device.remoteManager.sendKey(remoteMessageManager.RemoteKeyCode.OK);
-                    device.remoteManager.sendKey(remoteMessageManager.RemoteKeyCode.OK);
-                    for (let button of array){
-                        this.log.info('Appui sur ' + button + ' ' + this.channelskeys[button]);
-                        device.remoteManager.sendKey(this.channelskeys[button]);
+                    device.android_remote.sendKey(RemoteKeyCode.KEYCODE_HOME,RemoteDirection.SHORT);
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    device.android_remote.sendKey(RemoteKeyCode.KEYCODE_HOME,RemoteDirection.SHORT);
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    device.android_remote.sendKey(RemoteKeyCode.KEYCODE_DPAD_CENTER,RemoteDirection.SHORT);
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    //device.android_remote.sendKey(RemoteKeyCode.KEYCODE_DPAD_CENTER,RemoteDirection.SHORT);
+                    //await new Promise(resolve => setTimeout(resolve, 200));
+                    for (let button of array) {
+                        this.log.info('Tap on ' + button + ' ' + this.channelskeys[button]);
+                        device.android_remote.sendKey(this.channelskeys[button],RemoteDirection.SHORT);
                     }
-                }
-                else{
-                    // Il s'agit d'une application
-                    device.remoteManager.sendKey(remoteMessageManager.RemoteKeyCode.BACK);
-                    device.remoteManager.sendKey(remoteMessageManager.RemoteKeyCode.OK);
+                } else {
                     let index = newValue - this.config.channels.length;
                     let application = this.config.applications[index];
-                    this.log.info('Envoi de " + application.link');
-                    device.remoteManager.sendAppLink(application.link);
+                    this.log.info("Sending de" + application.link);
+                    device.android_remote.sendAppLink(application.link);
                 }
 
 
