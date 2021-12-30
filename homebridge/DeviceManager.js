@@ -12,10 +12,6 @@ class DeviceManager extends EventEmitter {
         this.api = api;
 
         this.devices = {};
-        this.certificate = {
-            cert : null,
-            key : null
-        }
     }
 
     load() {
@@ -24,13 +20,13 @@ class DeviceManager extends EventEmitter {
             let data = fs.readFileSync('config.json', {encoding:'utf-8'})
             if(data){
                 let obj = JSON.parse(data);
-                this.certificate = obj.certificate;
-
-                Object.keys(obj.devices).map((key, index) => {
-                    let device = obj.devices[key];
-                    this.devices[key] = new Device(device.host, device.port, device.name, device.cert, device.type);
-                    this.devices[key].paired = device.paired;
-                });
+                if(obj.devices){
+                    Object.keys(obj.devices).map((key, index) => {
+                        let device = obj.devices[key];
+                        this.devices[key] = new Device(device.host, device.port, device.name, device.cert, device.type);
+                        this.devices[key].paired = device.paired;
+                    });
+                }
             }
         }
 
@@ -161,9 +157,6 @@ class DeviceManager extends EventEmitter {
         if(result){
             device.pairing = false;
             device.paired = true;
-            if(!this.certificate.cert || !this.certificate.key){
-                this.certificate = device.android_remote.cert;
-            }
             this.save();
         }
 
