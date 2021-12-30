@@ -1,6 +1,6 @@
 const Devices = {
     mounted() {
-        axios.get('http://localhost:8181/api/devices').then((response) => (this.devices = response.data));
+        axios.get('api/devices').then((response) => (this.devices = response.data));
     },
     data() {
         return {

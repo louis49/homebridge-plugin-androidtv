@@ -1,6 +1,11 @@
 import express from "express";
 import path from "path";
 import { api } from "./api.js";
+import { fileURLToPath } from 'url';
+import { dirname } from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 class AdminServer {
 
@@ -8,8 +13,8 @@ class AdminServer {
         this.port = port;
         this.deviceManager = deviceManager;
         this.app = express();
-        this.app.use('/api', api(this.deviceManager))
-        this.app.use('/', express.static('./homebridge/admin/static'))
+        this.app.use('/api', api(this.deviceManager));
+        this.app.use('/', express.static(path.join(__dirname,'static')));
     }
 
     listen(){
