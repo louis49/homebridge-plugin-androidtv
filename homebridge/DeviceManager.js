@@ -3,6 +3,13 @@ import fs from "fs";
 import {Device} from "./Device.js";
 import EventEmitter from "events";
 
+import path from "path";
+import { fileURLToPath } from 'url';
+import { dirname } from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 class DeviceManager extends EventEmitter {
     constructor(log, config, api) {
         super();
@@ -12,12 +19,13 @@ class DeviceManager extends EventEmitter {
         this.api = api;
 
         this.devices = {};
+        //let config_path = 'androidtv-config.json';
+        this.config_path = path.join(__dirname,'androidtv-config.json');
     }
 
     load() {
-
-        if(fs.existsSync('config.json')){
-            let data = fs.readFileSync('config.json', {encoding:'utf-8'})
+        if(fs.existsSync(this.config_path)){
+            let data = fs.readFileSync(this.config_path, {encoding:'utf-8'});
             if(data){
                 let obj = JSON.parse(data);
                 if(obj.devices){
@@ -53,7 +61,7 @@ class DeviceManager extends EventEmitter {
             devices : devices
         }
         let data = JSON.stringify(obj, null, 1);
-        fs.writeFileSync('config.json', data, {encoding:'utf-8'});
+        fs.writeFileSync(this.config_path, data, {encoding:'utf-8'});
     }
 
     list() {
