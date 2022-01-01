@@ -3,13 +3,6 @@ import fs from "fs";
 import {Device} from "./Device.js";
 import EventEmitter from "events";
 
-import path from "path";
-import { fileURLToPath } from 'url';
-import { dirname } from "path";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
 class DeviceManager extends EventEmitter {
     constructor(log, config, api) {
         super();
@@ -19,8 +12,7 @@ class DeviceManager extends EventEmitter {
         this.api = api;
 
         this.devices = {};
-        //let config_path = 'androidtv-config.json';
-        this.config_path = path.join(__dirname,'androidtv-config.json');
+        this.config_path = 'androidtv-config.json'
     }
 
     load() {
