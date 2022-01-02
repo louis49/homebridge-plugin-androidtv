@@ -1,10 +1,10 @@
-import { AdminServer } from "./admin/index.js"
+import { AdminServer } from "./admin"
 import { DeviceManager } from "./DeviceManager.js"
-import { PLUGIN_NAME, PLATFORM_NAME } from './settings.js'
-import {RemoteKeyCode, RemoteDirection} from "androidtv-remote"
+export const PLATFORM_NAME = 'HomebridgeAndroidTV';
+export const PLUGIN_NAME = 'homebridge-androidtv';
+import {RemoteKeyCode, RemoteDirection} from "androidtv-remote";
 
 class AndroidTV {
-
     constructor(log, config, api) {
         this.log = log;
         this.config = config;

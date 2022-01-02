@@ -30,12 +30,6 @@ const Devices = {
                 console.log('Code received', response);
             });
         },
-        start: function (device){
-            console.log('Start ' + device.host);
-            axios.put('api/devices/' + device.host + '/start', {code:this.code}).then((response) => {
-                this.devices[device.host] = response.data;
-            });
-        },
         power: function (device){
             console.log('Send Power ' + device.host);
             axios.get('api/devices/' + device.host + '/power').then((response) => {

@@ -167,8 +167,6 @@ class DeviceManager extends EventEmitter {
         let device = this.get(host);
         device.android_remote.sendPower();
     }
-
-
 }
 
 export { DeviceManager };

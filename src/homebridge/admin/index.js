@@ -1,14 +1,8 @@
 import express from "express";
 import path from "path";
 import { api } from "./api.js";
-import { fileURLToPath } from 'url';
-import { dirname } from "path";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 class AdminServer {
-
     constructor(port, deviceManager) {
         this.port = port;
         this.deviceManager = deviceManager;

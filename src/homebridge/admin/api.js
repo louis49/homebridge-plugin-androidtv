@@ -2,7 +2,7 @@ import express from "express";
 
 function api(deviceManager) {
     const api = express()
-    api.use(express.json())
+    api.use(express.json());
 
     api.get('/devices', (req, res) => {
         let devices = deviceManager.list();
@@ -22,14 +22,6 @@ function api(deviceManager) {
         let device = await deviceManager.sendCode(req.params.host, req.body.code);
 
         res.json(device);
-    });
-
-    api.put('/devices/:host/start', async (req, res) => {
-        let ret = await deviceManager.start(req.params.host);
-        if(ret){
-            deviceManager.get(req.params.host).started = true;
-        }
-        res.json(deviceManager.get(req.params.host));
     });
 
     api.put('/devices/:host/type', async (req, res) => {

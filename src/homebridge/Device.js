@@ -1,4 +1,4 @@
-import {AndroidRemote} from "androidtv-remote"
+import {AndroidRemote} from "androidtv-remote";
 
 class Device {
 
