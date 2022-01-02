@@ -98,7 +98,7 @@ class AndroidTV {
 
         tvService.getCharacteristic(this.api.hap.Characteristic.Active).on('get', function (callback) {
             this.log.info('get Active', device.powered);
-            callback(null, device.started?this.api.hap.Characteristic.Active.ACTIVE:this.api.hap.Characteristic.Active.INACTIVE);//tvService.updateCharacteristic(this.api.hap.Characteristic.Active, 1);
+            callback(null, device.powered?this.api.hap.Characteristic.Active.ACTIVE:this.api.hap.Characteristic.Active.INACTIVE);//tvService.updateCharacteristic(this.api.hap.Characteristic.Active, 1);
         }.bind(this));
 
         this.deviceManager.on('powered', function (device){
