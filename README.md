@@ -12,13 +12,14 @@ Note that this is an unofficial plugin.
 1. Install Homebridge by following
    [the instructions](https://github.com/homebridge/homebridge/wiki).
 2. Install this plugin using [Homebridge Config UI X](https://github.com/oznu/homebridge-config-ui-x), or by running `npm install -g homebridge-androidtv`.
-3. Connect to http://localhost:8181 and pair detected devices
-4. Enjoy ;-) 
+3. Connect to [http://localhost:8182](http://localhost:8182) and pair detected devices with shown secret code
+4. On HomeKit app tap on 'Add accessory'
+5. Enjoy ;-) 
 
 ## Configuration
 You can configure channels and applications (don't hesitate to create an HomeKit Scene to launch them by voice)
 
-For channels, we always consider TV App as the first on the list channel shown after a 'Home' tap
+For channels, we always consider TV App as the first on the list channel shown after a 'Home' tap on regular remote
 
 Example for French TV :
 

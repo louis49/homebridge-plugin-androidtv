@@ -2,13 +2,13 @@
   "pluginAlias": "HomebridgeAndroidTV",
   "pluginType": "platform",
   "singular": true,
-  "headerDisplay": "",
-  "footerDisplay": "",
+  "headerDisplay": "Homebridge AndroidTV plugin",
+  "footerDisplay": "Please, go to http://localhost:8182 (change host to your) to see and add detected devices",
   "schema": {
     "port": {
       "title": "port",
       "type": "integer",
-      "default": "8181",
+      "default": "8182",
       "required": true
     },
     "channels": {
@@ -62,7 +62,7 @@
     {
       "key" : "port",
       "type" : "fieldset",
-      "title" : "Admin port",
+      "title" : "Administration port",
       "items" : {
         "title" : "Port",
         "key": "port"

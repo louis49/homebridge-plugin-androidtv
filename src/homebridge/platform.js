@@ -1,5 +1,5 @@
-import { AdminServer } from "./admin"
-import { DeviceManager } from "./DeviceManager.js"
+import { AdminServer } from "./admin/index.js";
+import { DeviceManager } from "./DeviceManager.js";
 export const PLATFORM_NAME = 'HomebridgeAndroidTV';
 export const PLUGIN_NAME = 'homebridge-androidtv';
 import {RemoteKeyCode, RemoteDirection} from "androidtv-remote";
@@ -43,7 +43,7 @@ class AndroidTV {
 
         this.deviceManager.on('discover', this.discover.bind(this));
 
-        this.adminServer = new AdminServer(this.config.port?this.config.port:8181, this.deviceManager)
+        this.adminServer = new AdminServer(this.config.port?this.config.port:8182, this.deviceManager)
         this.adminServer.listen()
             .then(port => {
                 this.log.info(`Admin server is running on port ${port}`);

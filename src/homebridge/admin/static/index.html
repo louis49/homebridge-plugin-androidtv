@@ -30,7 +30,7 @@
                         </div>
                     </td>
                     <td>
-                        <button class="btn btn-primary btn-sm" v-on:click="pair(device)" v-if="!device.paired && !device.pairing">Pair</button>
+                        <button class="btn btn-primary btn-sm" v-on:click="pair(device)" v-if="device.online && !device.paired && !device.pairing">Pair</button>
                         <button class="btn btn-warning btn-sm" v-on:click="power(device)" v-if="device.started">Power</button>
                         <div class="row" v-if="device.pairing">
                             <div class="col-sm-4">
