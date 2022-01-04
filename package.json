@@ -1,6 +1,6 @@
 {
   "name": "homebridge-androidtv",
-  "version": "2.0.13",
+  "version": "2.0.14",
   "description": "Homebridge plugin to control your AndroidTV / Freebox Player Pop / Freemox Mini 4k",
   "main": "dist/index.js",
   "engines": {
@@ -21,7 +21,7 @@
   "author": "@louis49",
   "license": "ISC",
   "dependencies": {
-    "androidtv-remote": "^1.0.8",
+    "androidtv-remote": "^1.0.9",
     "bonjour": "^3.5.0",
     "core-js": "^3.20.2",
     "express": "^4.17.2"
