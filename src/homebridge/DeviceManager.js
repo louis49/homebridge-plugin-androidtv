@@ -30,8 +30,7 @@ class DeviceManager extends EventEmitter {
             }
         }
 
-
-        console.log("End Load");
+        this.log.info("Devices loaded");
     }
 
     save() {
@@ -77,12 +76,12 @@ class DeviceManager extends EventEmitter {
     listen(){
         bonjour().find({
             type : ["androidtvremote2"]
-        }, async function (service){
+        }, async (service) => {
             const name = service.name;
             const address = service.addresses[0];
             const port = service.port;
 
-            this.log.debug('Finding device : ', name, address, port)
+            this.log.info('Finding online device : ', name, address, port)
 
             let device;
 
@@ -95,17 +94,17 @@ class DeviceManager extends EventEmitter {
             }
             device.online = true;
 
-            device.android_remote.on('secret', function (){
+            device.android_remote.on('secret', () => {
                 console.info('Pairing', this.devices[address].name);
                 this.devices[address].pairing = true;
-            }.bind(this));
+            });
 
-            device.android_remote.on('powered',function (powered){
+            device.android_remote.on('powered', (powered) => {
                 device.powered = powered;
                 this.emit('powered', device);
-            }.bind(this));
+            });
 
-            device.android_remote.on('volume',function (volume){
+            device.android_remote.on('volume',(volume) => {
                 device.volume_max = volume.maximum;
                 if(device.volume_current !== volume.level){
                     device.volume_current = volume.level;
@@ -122,11 +121,16 @@ class DeviceManager extends EventEmitter {
                 else{
                     device.volume_muted = volume.muted;
                 }
-            }.bind(this));
+            });
 
-            device.android_remote.on('ready',function () {
+            device.android_remote.on('ready', () => {
                 this.emit('discover', device);
-            }.bind(this));
+            });
+
+            device.android_remote.on('unpaired', () => {
+                this.unpair(device.host);
+                this.log.info("The device", device.name, "had a problem with certificates and was unpaired");
+            });
 
             if(device.paired){
                 let result = await device.android_remote.start();
@@ -135,7 +139,15 @@ class DeviceManager extends EventEmitter {
                     this.save();
                 }
             }
-        }.bind(this));
+        });
+    }
+
+    unpair(host){
+        let device = this.get(host);
+        device.started = false;
+        device.paired = false;
+        device.android_remote.cert = {};
+        this.save();
     }
 
     async pair(host){

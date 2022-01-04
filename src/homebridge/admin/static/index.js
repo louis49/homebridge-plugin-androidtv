@@ -2,9 +2,14 @@ const Devices = {
     mounted() {
         axios.get('api/devices').then((response) => (this.devices = response.data));
     },
+    computed: {
+        devices_length: function() {
+            return Object.keys(this.devices).length;
+        }
+    },
     data() {
         return {
-            devices: [],
+            devices: {},
             columns:["host", "name", "online", "paired", "started", "powered", "app_package_current", "type"],
             code: "",
             types: [
@@ -48,4 +53,4 @@ const Devices = {
 }
 
 
-Vue.createApp(Devices).mount('#devices')
+Vue.createApp(Devices).mount('#devices_list')
