@@ -65,7 +65,7 @@ class AndroidTV {
 
 
     discover(device){
-        console.log("Discover : ", device.toJSON());
+        this.log.info("Discover : ", device.toJSON());
 
         const tvName = device.name;
         const uuid = this.api.hap.uuid.generate('homebridge:androidtv-' + tvName);

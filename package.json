@@ -21,14 +21,15 @@
   "author": "@louis49",
   "license": "ISC",
   "dependencies": {
-    "androidtv-remote": "^1.0.7",
+    "androidtv-remote": "^1.0.8",
     "bonjour": "^3.5.0",
-    "express": "^4.17.2",
-    "core-js": "^3.20.2"
+    "core-js": "^3.20.2",
+    "express": "^4.17.2"
   },
   "devDependencies": {
     "@babel/cli": "^7.16.7",
     "@babel/preset-env": "^7.0.0",
+    "babel-plugin-transform-import-meta": "^2.1.0",
     "homebridge": "^1.3.9"
   },
   "type": "commonjs",
