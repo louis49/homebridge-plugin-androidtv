@@ -1,5 +1,5 @@
 # homebridge-plugin-androidtv
-
+[![verified-by-homebridge](https://badgen.net/badge/homebridge/verified/purple)](https://github.com/homebridge/homebridge/wiki/Verified-Plugins)
 [![npm-version](https://badgen.net/npm/v/homebridge-androidtv)](https://www.npmjs.com/package/homebridge-androidtv)
 [![npm-total-downloads](https://badgen.net/npm/dt/homebridge-androidtv)](https://www.npmjs.com/package/homebridge-androidtv)
 
