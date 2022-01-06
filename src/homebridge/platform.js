@@ -169,54 +169,66 @@ class AndroidTV {
             }.bind(this));
 
         let identifier = 0;
-        for (let channel of this.config.channels){
-            const uuid = this.api.hap.uuid.generate('homebridge:androidtv-channel-' + channel.name);
-            const service = this.tvAccessory.addService(this.api.hap.Service.InputSource, uuid, channel.name);
+        if(this.config.channels){
+            for (let channel of this.config.channels){
+                this.log.info("Adding channel", channel.name);
+                const uuid = this.api.hap.uuid.generate('homebridge:androidtv-channel-' + channel.name);
+                const service = this.tvAccessory.addService(this.api.hap.Service.InputSource, uuid, channel.name);
 
-            service.setCharacteristic(this.api.hap.Characteristic.Identifier, identifier)
-            service.setCharacteristic(this.api.hap.Characteristic.ConfiguredName, channel.name)
-            service.setCharacteristic(this.api.hap.Characteristic.IsConfigured, this.api.hap.Characteristic.IsConfigured.CONFIGURED)
-            service.setCharacteristic(this.api.hap.Characteristic.InputSourceType, this.api.hap.Characteristic.InputSourceType.TUNER);
-            tvService.addLinkedService(service);
-            identifier++;
+                service.setCharacteristic(this.api.hap.Characteristic.Identifier, identifier)
+                service.setCharacteristic(this.api.hap.Characteristic.ConfiguredName, channel.name)
+                service.setCharacteristic(this.api.hap.Characteristic.IsConfigured, this.api.hap.Characteristic.IsConfigured.CONFIGURED)
+                service.setCharacteristic(this.api.hap.Characteristic.InputSourceType, this.api.hap.Characteristic.InputSourceType.TUNER);
+                tvService.addLinkedService(service);
+                identifier++;
+            }
         }
 
-        for (let application of this.config.applications){
-            const uuid = this.api.hap.uuid.generate('homebridge:androidtv-application-' + application.name);
-            const service = this.tvAccessory.addService(this.api.hap.Service.InputSource, uuid, application.name);
-            service.setCharacteristic(this.api.hap.Characteristic.Identifier, identifier)
-            service.setCharacteristic(this.api.hap.Characteristic.ConfiguredName, application.name)
-            service.setCharacteristic(this.api.hap.Characteristic.IsConfigured, this.api.hap.Characteristic.IsConfigured.CONFIGURED)
-            service.setCharacteristic(this.api.hap.Characteristic.InputSourceType, this.api.hap.Characteristic.InputSourceType.APPLICATION);
-            tvService.addLinkedService(service);
-            identifier++;
+        if(this.config.applications){
+            for (let application of this.config.applications){
+                this.log.info("Adding application", application.name);
+                const uuid = this.api.hap.uuid.generate('homebridge:androidtv-application-' + application.name);
+                const service = this.tvAccessory.addService(this.api.hap.Service.InputSource, uuid, application.name);
+                service.setCharacteristic(this.api.hap.Characteristic.Identifier, identifier)
+                service.setCharacteristic(this.api.hap.Characteristic.ConfiguredName, application.name)
+                service.setCharacteristic(this.api.hap.Characteristic.IsConfigured, this.api.hap.Characteristic.IsConfigured.CONFIGURED)
+                service.setCharacteristic(this.api.hap.Characteristic.InputSourceType, this.api.hap.Characteristic.InputSourceType.APPLICATION);
+                tvService.addLinkedService(service);
+                identifier++;
+            }
         }
+
 
         tvService.setCharacteristic(this.api.hap.Characteristic.ActiveIdentifier, 0);
 
         tvService.getCharacteristic(this.api.hap.Characteristic.ActiveIdentifier)
             .onSet(async (newValue) => {
-                if (newValue < this.config.channels.length) {
-                    let channel = this.config.channels[newValue];
-                    let array = this.splitChannelNumber(channel.number);
-
-                    device.android_remote.sendKey(RemoteKeyCode.KEYCODE_HOME,RemoteDirection.SHORT);
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                    device.android_remote.sendKey(RemoteKeyCode.KEYCODE_HOME,RemoteDirection.SHORT);
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                    device.android_remote.sendKey(RemoteKeyCode.KEYCODE_DPAD_CENTER,RemoteDirection.SHORT);
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                    //device.android_remote.sendKey(RemoteKeyCode.KEYCODE_DPAD_CENTER,RemoteDirection.SHORT);
-                    //await new Promise(resolve => setTimeout(resolve, 200));
-                    for (let button of array) {
-                        this.log.info('Tap on ' + button + ' ' + this.channelskeys[button]);
-                        device.android_remote.sendKey(this.channelskeys[button],RemoteDirection.SHORT);
+                let channel_length = 0;
+                if(this.config.channels){
+                    channel_length = this.config.channels.length;
+                }
+                if (newValue < channel_length) {
+                    if(this.config.channels){
+                        let channel = this.config.channels[newValue];
+                        let array = this.splitChannelNumber(channel.number);
+                        device.android_remote.sendKey(RemoteKeyCode.KEYCODE_HOME,RemoteDirection.SHORT);
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                        device.android_remote.sendKey(RemoteKeyCode.KEYCODE_HOME,RemoteDirection.SHORT);
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                        device.android_remote.sendKey(RemoteKeyCode.KEYCODE_DPAD_CENTER,RemoteDirection.SHORT);
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                        for (let button of array) {
+                            this.log.info('Tap on ' + button + ' ' + this.channelskeys[button]);
+                            device.android_remote.sendKey(this.channelskeys[button],RemoteDirection.SHORT);
+                        }
                     }
                 } else {
-                    let index = newValue - this.config.channels.length;
-                    let application = this.config.applications[index];
-                    this.log.info("Sending de" + application.link);
-                    device.android_remote.sendAppLink(application.link);
+                    if(this.config.applications){
+                        let index = newValue - channel_length;
+                        let application = this.config.applications[index];
+                        this.log.info("Sending de" + application.link);
+                        device.android_remote.sendAppLink(application.link);
+                    }
                 }
 
 
