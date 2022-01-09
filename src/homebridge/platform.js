@@ -69,8 +69,9 @@ class AndroidTV {
 
         const tvName = device.name;
         const uuid = this.api.hap.uuid.generate('homebridge:androidtv-' + tvName);
+        this.log.info(tvName, 'Registering device', uuid);
         this.tvAccessory = new this.api.platformAccessory(tvName, uuid);
-        this.tvAccessory.category = device.type;//this.api.hap.Categories.TV_SET_TOP_BOX;
+        this.tvAccessory.category = device.type;
 
         this.infoService = this.tvAccessory.getService(this.api.hap.Service.AccessoryInformation);
         this.infoService
@@ -88,7 +89,7 @@ class AndroidTV {
         tvService.setCharacteristic(this.api.hap.Characteristic.PowerModeSelection, this.api.hap.Characteristic.PowerModeSelection.SHOW);
 
         tvService.getCharacteristic(this.api.hap.Characteristic.Active).onSet((newValue, old) => {
-            this.log.info('set Active => setNewValue: ' + newValue);
+            this.log.info(tvName, 'set Active => setNewValue: ' + newValue);
 
             if(device.powered !==  (newValue === this.api.hap.Characteristic.Active.ACTIVE)){
                 device.android_remote.sendPower();
@@ -97,19 +98,19 @@ class AndroidTV {
         });
 
         tvService.getCharacteristic(this.api.hap.Characteristic.Active).on('get', function (callback) {
-            this.log.info('get Active', device.powered);
+            this.log.info(tvName, 'get Active', device.powered);
             callback(null, device.powered?this.api.hap.Characteristic.Active.ACTIVE:this.api.hap.Characteristic.Active.INACTIVE);//tvService.updateCharacteristic(this.api.hap.Characteristic.Active, 1);
         }.bind(this));
 
         this.deviceManager.on('powered', function (device){
-            this.log.info('powered', device.powered);
+            this.log.info(tvName, 'powered', device.powered);
             tvService.updateCharacteristic(this.api.hap.Characteristic.Active,
                 device.powered?this.api.hap.Characteristic.Active.ACTIVE:this.api.hap.Characteristic.Active.INACTIVE);
         }.bind(this));
 
         tvService.getCharacteristic(this.api.hap.Characteristic.RemoteKey)
             .onSet((newValue) => {
-                this.log.info('Set RemoteKey ' + newValue);
+                this.log.info(tvName, 'Set RemoteKey ' + newValue);
                 device.android_remote.sendKey(this.keys[newValue], RemoteDirection.SHORT);
             });
 
@@ -120,7 +121,7 @@ class AndroidTV {
 
         speakerService.getCharacteristic(this.api.hap.Characteristic.VolumeSelector)
             .onSet((volumeSelector) => {
-                this.log.info('set VolumeSelector => setNewValue: ' + volumeSelector);
+                this.log.info(tvName, 'set VolumeSelector => setNewValue: ' + volumeSelector);
                 if(volumeSelector === this.api.hap.Characteristic.VolumeSelector.INCREMENT){
                     device.android_remote.sendKey(RemoteKeyCode.KEYCODE_VOLUME_UP, RemoteDirection.SHORT);
                 }
@@ -135,7 +136,7 @@ class AndroidTV {
                 if(device.volume_max > 0){
                     volume = Math.round(device.volume_current*100/device.volume_max);
                 }
-                this.log.info('get VolumeSelector ' + volume);
+                this.log.info(tvName, 'get VolumeSelector ' + volume);
                 callback(null, volume);
             }.bind(this));
 
@@ -145,35 +146,37 @@ class AndroidTV {
             if(device.volume_max > 0){
                 volume = Math.round(device.volume_current*100/device.volume_max);
             }
-            this.log.info('Device set Volume', volume);
+            this.log.info(tvName, 'Device set Volume', volume);
             speakerService.updateCharacteristic(this.api.hap.Characteristic.Volume, volume);
         }.bind(this));
 
 
         speakerService.getCharacteristic(this.api.hap.Characteristic.Mute)
             .onSet(function(muted) {
+                this.log.info(tvName, 'set Mute => muted: ' + muted);
                 device.android_remote.sendKey(RemoteKeyCode.KEYCODE_VOLUME_MUTE,RemoteDirection.SHORT);
                 speakerService.updateCharacteristic(this.api.hap.Characteristic.Mute, muted);
             });
 
         this.deviceManager.on('muted', function (device){
-            this.log.info('muted', device.volume_muted);
+            this.log.info(tvName, 'Device set mute', device.volume_muted);
             speakerService.updateCharacteristic(this.api.hap.Characteristic.Mute, device.volume_muted);
         }.bind(this));
 
         speakerService.getCharacteristic(this.api.hap.Characteristic.Mute)
             .on("get", function (callback){
                 let muted = device.volume_muted;
-                this.log.info('get VolumeMutedSelector');
+                this.log.info(tvName, 'get VolumeMutedSelector');
                 callback(null, muted);
             }.bind(this));
 
         let identifier = 0;
         if(this.config.channels){
             for (let channel of this.config.channels){
-                this.log.info("Adding channel", channel.name);
-                const uuid = this.api.hap.uuid.generate('homebridge:androidtv-channel-' + channel.name);
+
+                const uuid = this.api.hap.uuid.generate('homebridge:androidtv-' + tvName + '-channel-' + channel.name);
                 const service = this.tvAccessory.addService(this.api.hap.Service.InputSource, uuid, channel.name);
+                this.log.info(tvName, 'Adding channel', channel.name, uuid);
 
                 service.setCharacteristic(this.api.hap.Characteristic.Identifier, identifier)
                 service.setCharacteristic(this.api.hap.Characteristic.ConfiguredName, channel.name)
@@ -186,9 +189,9 @@ class AndroidTV {
 
         if(this.config.applications){
             for (let application of this.config.applications){
-                this.log.info("Adding application", application.name);
-                const uuid = this.api.hap.uuid.generate('homebridge:androidtv-application-' + application.name);
+                const uuid = this.api.hap.uuid.generate('homebridge:androidtv-' + tvName + '-application-' + application.name);
                 const service = this.tvAccessory.addService(this.api.hap.Service.InputSource, uuid, application.name);
+                this.log.info(tvName, 'Adding application', application.name, uuid);
                 service.setCharacteristic(this.api.hap.Characteristic.Identifier, identifier)
                 service.setCharacteristic(this.api.hap.Characteristic.ConfiguredName, application.name)
                 service.setCharacteristic(this.api.hap.Characteristic.IsConfigured, this.api.hap.Characteristic.IsConfigured.CONFIGURED)
@@ -218,7 +221,7 @@ class AndroidTV {
                         device.android_remote.sendKey(RemoteKeyCode.KEYCODE_DPAD_CENTER,RemoteDirection.SHORT);
                         await new Promise(resolve => setTimeout(resolve, 500));
                         for (let button of array) {
-                            this.log.info('Tap on ' + button + ' ' + this.channelskeys[button]);
+                            this.log.info(tvName, 'Tap on ' + button + ' ' + this.channelskeys[button]);
                             device.android_remote.sendKey(this.channelskeys[button],RemoteDirection.SHORT);
                         }
                     }
@@ -226,13 +229,12 @@ class AndroidTV {
                     if(this.config.applications){
                         let index = newValue - channel_length;
                         let application = this.config.applications[index];
-                        this.log.info("Sending de" + application.link);
+                        this.log.info(tvName, "Sending link" + application.link);
                         device.android_remote.sendAppLink(application.link);
                     }
                 }
 
-
-                this.log.info('set Active Identifier => setNewValue: ' + newValue);
+                this.log.info(tvName, 'set Active Identifier => setNewValue: ' + newValue);
             });
 
         this.api.publishExternalAccessories(PLUGIN_NAME, [this.tvAccessory]);
