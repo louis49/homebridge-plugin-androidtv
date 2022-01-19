@@ -52,3 +52,5 @@ Example for populars applications :
    ],
 }
 ```
+
+You can find in Wiki a [french TV by Free configuration](https://github.com/louis49/homebridge-plugin-androidtv/wiki/French-TV-by-Free-(OQEE)-configuration)
