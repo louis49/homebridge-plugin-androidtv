@@ -1,0 +1,6 @@
+.DS_Store
+.idea
+target
+node_modules
+package-lock.json
+.homebridge
