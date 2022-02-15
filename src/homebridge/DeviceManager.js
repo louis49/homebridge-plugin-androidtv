@@ -1,5 +1,6 @@
 import bonjour from "bonjour";
 import fs from "fs";
+import path from "path";
 import {Device} from "./Device.js";
 import EventEmitter from "events";
 
@@ -12,7 +13,7 @@ class DeviceManager extends EventEmitter {
         this.api = api;
 
         this.devices = {};
-        this.config_path = 'androidtv-config.json'
+        this.config_path = path.join(api.user.storagePath(), 'androidtv-config.json');
     }
 
     load() {
