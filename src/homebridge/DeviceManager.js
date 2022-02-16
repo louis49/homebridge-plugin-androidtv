@@ -82,62 +82,64 @@ class DeviceManager extends EventEmitter {
             const address = service.addresses[0];
             const port = service.port;
 
-            this.log.info('Finding online device : ', name, address, port)
+            if(address !== undefined){
+                this.log.info('Finding online device : ', name, address, port)
 
-            let device;
+                let device;
 
-            if(this.exist(address)){
-                device = this.get(address);
-            }
-            else{
-                device = new Device(address, port, name, null, 31);
-                this.devices[address] = device;
-            }
-            device.online = true;
-
-            device.android_remote.on('secret', () => {
-                console.info('Pairing', this.devices[address].name);
-                this.devices[address].pairing = true;
-            });
-
-            device.android_remote.on('powered', (powered) => {
-                device.powered = powered;
-                this.emit('powered', device);
-            });
-
-            device.android_remote.on('volume',(volume) => {
-                device.volume_max = volume.maximum;
-                if(device.volume_current !== volume.level){
-                    device.volume_current = volume.level;
-                    this.emit('volume', device);
+                if(this.exist(address)){
+                    device = this.get(address);
                 }
                 else{
-                    device.volume_current = volume.level;
+                    device = new Device(address, port, name, null, 31);
+                    this.devices[address] = device;
                 }
+                device.online = true;
 
-                if(device.volume_muted !== volume.muted){
-                    device.volume_muted = volume.muted;
-                    this.emit('muted', device);
-                }
-                else{
-                    device.volume_muted = volume.muted;
-                }
-            });
+                device.android_remote.on('secret', () => {
+                    console.info('Pairing', this.devices[address].name);
+                    this.devices[address].pairing = true;
+                });
 
-            device.android_remote.on('ready', () => {
-                this.emit('discover', device);
-            });
+                device.android_remote.on('powered', (powered) => {
+                    device.powered = powered;
+                    this.emit('powered', device);
+                });
 
-            device.android_remote.on('unpaired', () => {
-                this.unpair(device.host);
-                this.log.info("The device", device.name, "had a problem with certificates and was unpaired");
-            });
+                device.android_remote.on('volume',(volume) => {
+                    device.volume_max = volume.maximum;
+                    if(device.volume_current !== volume.level){
+                        device.volume_current = volume.level;
+                        this.emit('volume', device);
+                    }
+                    else{
+                        device.volume_current = volume.level;
+                    }
 
-            if(device.paired){
-                let result = await device.android_remote.start();
-                if(result){
-                    device.started = true;
-                    this.save();
+                    if(device.volume_muted !== volume.muted){
+                        device.volume_muted = volume.muted;
+                        this.emit('muted', device);
+                    }
+                    else{
+                        device.volume_muted = volume.muted;
+                    }
+                });
+
+                device.android_remote.on('ready', () => {
+                    this.emit('discover', device);
+                });
+
+                device.android_remote.on('unpaired', () => {
+                    this.unpair(device.host);
+                    this.log.info("The device", device.name, "had a problem with certificates and was unpaired");
+                });
+
+                if(device.paired){
+                    let result = await device.android_remote.start();
+                    if(result){
+                        device.started = true;
+                        this.save();
+                    }
                 }
             }
         });
