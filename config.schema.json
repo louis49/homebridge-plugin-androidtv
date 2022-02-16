@@ -34,6 +34,29 @@
         }
       }
     },
+    "keys": {
+      "type": "array",
+      "items": {
+        "title": "Keys",
+        "type": "object",
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string",
+            "default": "Power",
+            "placeholder": "Key name",
+            "required": true
+          },
+          "key": {
+            "title": "Key code",
+            "type": "string",
+            "default" : "KEYCODE_POWER",
+            "placeholder": "Key code",
+            "required": true
+          }
+        }
+      }
+    },
     "applications": {
       "type": "array",
       "items": {
@@ -76,6 +99,16 @@
       "items": [
         "channels[].name",
         "channels[].number"
+      ]
+    },
+    {
+      "key": "keys",
+      "type": "array",
+      "orderable": true,
+      "buttonText": "Add Key",
+      "items": [
+        "keys[].name",
+        "keys[].key"
       ]
     },
     {

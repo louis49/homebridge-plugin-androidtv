@@ -187,6 +187,22 @@ class AndroidTV {
             }
         }
 
+        if(this.config.keys){
+            for (let key of this.config.keys){
+
+                const uuid = this.api.hap.uuid.generate('homebridge:androidtv-' + tvName + '-key-' + key.name);
+                const service = this.tvAccessory.addService(this.api.hap.Service.InputSource, uuid, key.name);
+                this.log.info(tvName, 'Adding key', key.name, uuid);
+
+                service.setCharacteristic(this.api.hap.Characteristic.Identifier, identifier)
+                service.setCharacteristic(this.api.hap.Characteristic.ConfiguredName, key.name)
+                service.setCharacteristic(this.api.hap.Characteristic.IsConfigured, this.api.hap.Characteristic.IsConfigured.CONFIGURED)
+                service.setCharacteristic(this.api.hap.Characteristic.InputSourceType, this.api.hap.Characteristic.InputSourceType.TUNER);
+                tvService.addLinkedService(service);
+                identifier++;
+            }
+        }
+
         if(this.config.applications){
             for (let application of this.config.applications){
                 const uuid = this.api.hap.uuid.generate('homebridge:androidtv-' + tvName + '-application-' + application.name);
@@ -207,8 +223,12 @@ class AndroidTV {
         tvService.getCharacteristic(this.api.hap.Characteristic.ActiveIdentifier)
             .onSet(async (newValue) => {
                 let channel_length = 0;
+                let key_length = 0;
                 if(this.config.channels){
                     channel_length = this.config.channels.length;
+                }
+                if(this.config.keys){
+                    key_length = this.config.keys.length;
                 }
                 if (newValue < channel_length) {
                     if(this.config.channels){
@@ -225,9 +245,19 @@ class AndroidTV {
                             device.android_remote.sendKey(this.channelskeys[button],RemoteDirection.SHORT);
                         }
                     }
-                } else {
-                    if(this.config.applications){
+                }
+                else if (newValue < (channel_length + key_length)) {
+                    if(this.config.keys){
                         let index = newValue - channel_length;
+                        let key = this.config.keys[index];
+                        let value = RemoteKeyCode[key.key]
+                        device.android_remote.sendKey(value,RemoteDirection.SHORT);
+                        this.log.info(tvName, 'Tap on ' + key.key + ' ' + RemoteKeyCode[key.key]);
+                    }
+                }
+                else {
+                    if(this.config.applications){
+                        let index = newValue - channel_length - key_length;
                         let application = this.config.applications[index];
                         this.log.info(tvName, "Sending link" + application.link);
                         device.android_remote.sendAppLink(application.link);

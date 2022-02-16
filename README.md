@@ -20,7 +20,7 @@ Note that this is an unofficial plugin.
 5. Enjoy ;-) 
 
 ## Configuration
-You can configure channels and applications (don't hesitate to create an HomeKit Scene to launch them by voice)
+You can configure channels, keys and applications (don't hesitate to create an HomeKit Scene to launch them by voice)
 
 For channels, we always consider TV App as the first on the list channel shown after a 'Home' tap on regular remote
 
@@ -44,6 +44,25 @@ Example for French TV :
 }
 ```
 
+Example for keys : 
+
+
+```json
+{
+   "keys": [
+      {"name": "Power", "key": "KEYCODE_POWER"},
+      {"name": "VolUp", "key": "KEYCODE_VOLUME_UP"},
+      {"name": "VolDown", "key": "KEYCODE_VOLUME_DOWN"},
+      {"name": "Home", "key": "KEYCODE_HOME"},
+      {"name": "Mute", "key": "KEYCODE_MUTE"}
+   ]
+}
+```
+Key code are listed here:
+* [android.com/reference/android/view/KeyEvent](https://developer.android.com/reference/android/view/KeyEvent?hl=fr)
+* [androidtv-remote/src/remote/remotemessage.proto#L88](https://github.com/louis49/androidtv-remote/blob/6ff7a73f2db53da4129c809cde9c616b9babde72/src/remote/remotemessage.proto#L88)
+
+
 Example for populars applications : 
 ```json
 {
@@ -52,7 +71,7 @@ Example for populars applications :
       {"name": "OQEE", "link": "https://oq.ee/home/"},
       {"name": "Disney+", "link": "https://www.disneyplus.com"},
       {"name": "Amazon Prime", "link": "https://app.primevideo.com"}
-   ],
+   ]
 }
 ```
 
