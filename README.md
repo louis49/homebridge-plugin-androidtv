@@ -70,7 +70,8 @@ Example for populars applications :
       {"name": "Netflix", "link": "https://www.netflix.com/title.*"},
       {"name": "OQEE", "link": "https://oq.ee/home/"},
       {"name": "Disney+", "link": "https://www.disneyplus.com"},
-      {"name": "Amazon Prime", "link": "https://app.primevideo.com"}
+      {"name": "Amazon Prime", "link": "https://app.primevideo.com"},
+      {"name": "Salto", "link": "https://www.salto.fr"}
    ]
 }
 ```
