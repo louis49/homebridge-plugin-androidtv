@@ -259,7 +259,7 @@ class AndroidTV {
                     if(this.config.applications){
                         let index = newValue - channel_length - key_length;
                         let application = this.config.applications[index];
-                        this.log.info(tvName, "Sending link" + application.link);
+                        this.log.info(tvName, "Sending link " + application.link);
                         device.android_remote.sendAppLink(application.link);
                     }
                 }
