@@ -151,6 +151,7 @@ class DeviceManager extends EventEmitter {
         device.paired = false;
         device.android_remote.cert = {};
         this.save();
+        return device;
     }
 
     async pair(host){

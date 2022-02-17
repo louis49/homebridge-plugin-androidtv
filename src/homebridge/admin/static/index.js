@@ -27,6 +27,13 @@ const Devices = {
                 this.devices[device.host] = response.data;
             });
         },
+        unpair: function (device){
+            console.log('Unpair ' + device.host);
+            axios.put('api/devices/' + device.host + '/unpair').then((response) => {
+                console.log('Unpaired', response);
+                this.devices[device.host] = response.data;
+            });
+        },
         send_code: function (device){
             console.log('sendCode ' + device.host + ' ' + this.code);
             axios.put('api/devices/' + device.host + '/secret', {code:this.code}).then((response) => {

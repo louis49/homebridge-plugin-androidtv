@@ -18,6 +18,11 @@ function api(deviceManager) {
         res.json(deviceManager.get(req.params.host).toJSON());
     });
 
+    api.put('/devices/:host/unpair', async (req, res) => {
+        await deviceManager.unpair(req.params.host);
+        res.json(deviceManager.get(req.params.host).toJSON());
+    });
+
     api.put('/devices/:host/secret', async(req, res) => {
         let device = await deviceManager.sendCode(req.params.host, req.body.code);
 
