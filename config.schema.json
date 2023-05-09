@@ -34,6 +34,11 @@
         }
       }
     },
+    "infoKeyOverride": {
+      "name": "Info Key Override Keycode",
+      "type": "string",
+      "default": "KEYCODE_INFO"
+    },
     "keys": {
       "type": "array",
       "items": {

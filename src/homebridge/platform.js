@@ -23,7 +23,7 @@ class AndroidTV {
         this.keys[this.api.hap.Characteristic.RemoteKey.BACK] =  RemoteKeyCode.KEYCODE_BACK;
         this.keys[this.api.hap.Characteristic.RemoteKey.EXIT] =  RemoteKeyCode.KEYCODE_HOME;
         this.keys[this.api.hap.Characteristic.RemoteKey.PLAY_PAUSE] = RemoteKeyCode.KEYCODE_MEDIA_PLAY_PAUSE;
-        this.keys[this.api.hap.Characteristic.RemoteKey.INFORMATION] = RemoteKeyCode.KEYCODE_INFO;
+        this.keys[this.api.hap.Characteristic.RemoteKey.INFORMATION] = this.config.infoKeyOverride ? RemoteKeyCode[this.config.infoKeyOverride] : RemoteKeyCode.KEYCODE_INFO;
 
         this.channelskeys = {};
         this.channelskeys[0] = RemoteKeyCode.KEYCODE_0;
