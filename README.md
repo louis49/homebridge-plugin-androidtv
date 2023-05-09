@@ -58,6 +58,15 @@ Example for keys :
    ]
 }
 ```
+
+Replace "Info" button on the remote:
+
+```json
+{
+   "infoKeyOverride": "KEYCODE_HOME"
+}
+```
+
 Key code are listed here:
 * [android.com/reference/android/view/KeyEvent](https://developer.android.com/reference/android/view/KeyEvent?hl=fr)
 * [androidtv-remote/src/remote/remotemessage.proto#L88](https://github.com/louis49/androidtv-remote/blob/6ff7a73f2db53da4129c809cde9c616b9babde72/src/remote/remotemessage.proto#L88)
